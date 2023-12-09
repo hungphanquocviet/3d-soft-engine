@@ -1,6 +1,7 @@
 ﻿using Windows.UI.Xaml.Media.Imaging;
 using System.Runtime.InteropServices.WindowsRuntime;
 using SharpDX;
+using System;
 
 namespace SoftEngine
 {
@@ -92,6 +93,7 @@ namespace SoftEngine
                                                            (float)bmp.PixelWidth / bmp.PixelHeight,
                                                            0.01f, 1.0f);
 
+
             foreach (Mesh mesh in meshes)
             {
                 // Beware to apply rotation before translation 
@@ -108,6 +110,72 @@ namespace SoftEngine
                     // Then we can draw on screen
                     DrawPoint(point);
                 }
+
+                for (var i = 0; i < mesh.Vertices.Length - 1; i++)
+                {
+                    var point0 = Project(mesh.Vertices[i], transformMatrix);
+                    var point1 = Project(mesh.Vertices[i + 1], transformMatrix);
+                    DrawBline(point0, point1);
+                }
+
+                // Iterate through all the faces defined and to draw the triangles associated.
+                foreach (var face in mesh.Faces)
+                {
+                    var vertexA = mesh.Vertices[face.A];
+                    var vertexB = mesh.Vertices[face.B];
+                    var vertexC = mesh.Vertices[face.C];
+
+                    var pixelA = Project(vertexA, transformMatrix);
+                    var pixelB = Project(vertexB, transformMatrix);
+                    var pixelC = Project(vertexC, transformMatrix);
+
+                    DrawBline(pixelA, pixelB);
+                    DrawBline(pixelB, pixelC);
+                    DrawBline(pixelC, pixelA);
+                }
+            }
+        }
+
+        public void DrawLine(Vector2 point0, Vector2 point1)
+        {
+            var dist = (point1 - point0).Length();
+
+            // If the distance between the 2 points is less than 2 pixels
+            // We're exiting
+            if (dist < 2)
+                return;
+
+            // Find the middle point between first & second point
+            Vector2 middlePoint = point0 + (point1 - point0) / 2;
+            // We draw this point on screen
+            DrawPoint(middlePoint);
+            // Recursive algorithm launched between first & middle point
+            // and between middle & second point
+            DrawLine(point0, middlePoint);
+            DrawLine(middlePoint, point1);
+        }
+
+        public void DrawBline(Vector2 point0, Vector2 point1)
+        {
+            int x0 = (int)point0.X;
+            int y0 = (int)point0.Y;
+            int x1 = (int)point1.X;
+            int y1 = (int)point1.Y;
+
+            var dx = Math.Abs(x1 - x0);
+            var dy = Math.Abs(y1 - y0);
+            var sx = (x0 < x1) ? 1 : -1;
+            var sy = (y0 < y1) ? 1 : -1;
+            var err = dx - dy;
+
+            while (true)
+            {
+                DrawPoint(new Vector2(x0, y0));
+
+                if ((x0 == x1) && (y0 == y1)) break;
+                var e2 = 2 * err;
+                if (e2 > -dy) { err -= dy; x0 += sx; }
+                if (e2 < dx) { err += dx; y0 += sy; }
             }
         }
     }
