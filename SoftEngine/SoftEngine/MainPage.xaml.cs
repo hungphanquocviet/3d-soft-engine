@@ -39,7 +39,7 @@ namespace SoftEngine
             frontBuffer.Source = bmp;
 
             device = new Device(bmp);
-            meshes = await device.LoadJSONFileAsync("monkey.babylon");
+            meshes = await device.LoadJSONFileAsync("duck5.babylon");
             mera.Position = new Vector3(0, 0, 10.0f);
             mera.Target = Vector3.Zero;
 
